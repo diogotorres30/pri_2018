@@ -3,13 +3,13 @@ import math
 from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 import csv
-from whoosh.index import create_in
-from whoosh.fields import *
-schema = Schema(id = NUMERIC(stored=True), content=TEXT)
-ix = create_in("indexdir", schema)
+#from whoosh.index import create_in
+#from whoosh.fields import *
+#schema = Schema(id = NUMERIC(stored=True), content=TEXT)
+#ix = create_in("indexdir", schema)
 
 csv.field_size_limit(1000000)
-csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
+csvfile = open('en_docs_clean.csv', 'r',encoding='latin-1')
 spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
 for row in spamreader:
 	print(row)
