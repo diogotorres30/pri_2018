@@ -7,35 +7,41 @@ from whoosh.index import create_in
 from whoosh.index import open_dir
 from whoosh.qparser import *
 from whoosh.fields import *
-# schema = Schema(id = TEXT(stored=True), content=TEXT)
+# schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT, party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
 # ix = create_in("indexdir", schema)
 # writer = ix.writer()
 
-firstline = True
-csv.field_size_limit(1000000)
-csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
-spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
-for row in spamreader:
-	if firstline:
-		firstline = False
-		continue
+# firstline = True
+# csv.field_size_limit(1000000)
+# csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
+# spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
+# for row in spamreader:
+# 	if firstline:
+# 		firstline = False
+# 		continue
 # 	print(row[1])
-# 	writer.add_document(id=row[1],content=row[0])
+# 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
 # writer.commit()
 
-user_query = sys.argv[1:]
+user_query = ' '.join(sys.argv[1:])
 ix = open_dir("indexdir")
-
+parties = dict()
+print()
+print('Results for query:', user_query)
 with ix.searcher() as searcher:
-	query = QueryParser("content", ix.schema, group=OrGroup).parse(user_query[0])
-	results = searcher.search(query, limit=100)
+	query = QueryParser("content", ix.schema, group=OrGroup).parse(user_query)
+	results = searcher.search(query,limit=100)
 	for r in results:
-		print(r)
+		parties.setdefault(r["party"],[]).append(r["manifesto_id"]) 
+		print(r["manifesto_id"])
 	print("Number of results:", results.scored_length())
+	print()
+	print('****************************************************************************')
+	print('Number of manifestos per party in results')
+	print('****************************************************************************')
+	for p in parties.keys():
+		print(p, ': ', len(list(set(parties.get(p)))))	
 
-
-
-print(query)
 
 # file_content = doc.readlines()
 # document_length = len(file_content)
