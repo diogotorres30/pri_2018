@@ -4,17 +4,36 @@ from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 import csv
 from whoosh.index import create_in
+from whoosh.index import open_dir
+from whoosh.qparser import *
 from whoosh.fields import *
-schema = Schema(id = NUMERIC(stored=True), content=TEXT)
-ix = create_in("indexdir", schema)
+# schema = Schema(id = TEXT(stored=True), content=TEXT)
+# ix = create_in("indexdir", schema)
+# writer = ix.writer()
 
+firstline = True
 csv.field_size_limit(1000000)
 csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
 spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
 for row in spamreader:
-	print(row)
+	if firstline:
+		firstline = False
+		continue
+# 	print(row[1])
+# 	writer.add_document(id=row[1],content=row[0])
+# writer.commit()
 
-query = sys.argv
+user_query = sys.argv[1:]
+ix = open_dir("indexdir")
+
+with ix.searcher() as searcher:
+	query = QueryParser("content", ix.schema, group=OrGroup).parse(user_query[0])
+	results = searcher.search(query, limit=100)
+	for r in results:
+		print(r)
+	print("Number of results:", results.scored_length())
+
+
 
 print(query)
 
