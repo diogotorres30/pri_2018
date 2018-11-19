@@ -7,6 +7,7 @@ from whoosh.index import create_in
 from whoosh.index import open_dir
 from whoosh.qparser import *
 from whoosh.fields import *
+import whoosh.lang
 # schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT, party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
 # ix = create_in("indexdir", schema)
 # writer = ix.writer()
@@ -23,24 +24,47 @@ from whoosh.fields import *
 # 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
 # writer.commit()
 
-user_query = ' '.join(sys.argv[1:])
+user_query = sys.argv[1]
 ix = open_dir("indexdir")
 parties = dict()
+manifestos_results = []
+#print(whoosh.lang.stopwords_for_language('english').__contains__("if"))
 print()
 print('Results for query:', user_query)
 with ix.searcher() as searcher:
-	query = QueryParser("content", ix.schema, group=OrGroup).parse(user_query)
-	results = searcher.search(query,limit=100)
+	query = QueryParser("content", ix.schema).parse(user_query)
+	results = searcher.search(query,limit=None)
 	for r in results:
 		parties.setdefault(r["party"],[]).append(r["manifesto_id"]) 
-		print(r["manifesto_id"])
-	print("Number of results:", results.scored_length())
+		manifestos_results.append(r["manifesto_id"])
+	print(list(set(manifestos_results)))
+	print("Number of results:", len(list(set(manifestos_results))))
 	print()
 	print('****************************************************************************')
 	print('Number of manifestos per party in results')
 	print('****************************************************************************')
 	for p in parties.keys():
-		print(p, ': ', len(list(set(parties.get(p)))))	
+		print(p, ': ', len(list(set(parties.get(p)))))
+	print(user_query.split())
+	#########################################################################################
+	# for sub_query in user_query.split():
+	# 	query = QueryParser("content", ix.schema).parse(sub_query)
+	# 	results = searcher.search(query,limit=None)
+	# 	for r in results:
+	# 		parties.setdefault(r["party"],[]).append(r["manifesto_id"]) 
+	# 		manifestos_results.append(r["manifesto_id"])
+	# 	print(list(set(manifestos_results)))
+	# 	print("Number of results:", len(list(set(manifestos_results))))
+	# 	print()
+	# 	print('****************************************************************************')
+	# 	print('Number of manifestos per party in results')
+	# 	print('****************************************************************************')
+	# 	for p in parties.keys():
+	# 		print(p, ': ', len(list(set(parties.get(p)))))
+
+
+
+
 
 
 # file_content = doc.readlines()
