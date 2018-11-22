@@ -28,9 +28,10 @@ user_query = sys.argv[1]
 ix = open_dir("indexdir")
 parties = dict()
 manifestos_results = []
-#print(whoosh.lang.stopwords_for_language('english').__contains__("if"))
 print()
-print('Results for query:', user_query)
+print()
+print('Results for query: "', user_query,'"')
+print('----------------------------------------------------------------------------')
 with ix.searcher() as searcher:
 	query = QueryParser("content", ix.schema).parse(user_query)
 	results = searcher.search(query,limit=None)
@@ -38,29 +39,34 @@ with ix.searcher() as searcher:
 		parties.setdefault(r["party"],[]).append(r["manifesto_id"]) 
 		manifestos_results.append(r["manifesto_id"])
 	print(list(set(manifestos_results)))
-	print("Number of results:", len(list(set(manifestos_results))))
+	print("Total of number of manifestos:", len(list(set(manifestos_results))))
+	print('****************************************************************************')
 	print()
-	print('****************************************************************************')
 	print('Number of manifestos per party in results')
-	print('****************************************************************************')
+	print('----------------------------------------------------------------------------')
 	for p in parties.keys():
 		print(p, ': ', len(list(set(parties.get(p)))))
-	print(user_query.split())
-	#########################################################################################
-	# for sub_query in user_query.split():
-	# 	query = QueryParser("content", ix.schema).parse(sub_query)
-	# 	results = searcher.search(query,limit=None)
-	# 	for r in results:
-	# 		parties.setdefault(r["party"],[]).append(r["manifesto_id"]) 
-	# 		manifestos_results.append(r["manifesto_id"])
-	# 	print(list(set(manifestos_results)))
-	# 	print("Number of results:", len(list(set(manifestos_results))))
-	# 	print()
-	# 	print('****************************************************************************')
-	# 	print('Number of manifestos per party in results')
-	# 	print('****************************************************************************')
-	# 	for p in parties.keys():
-	# 		print(p, ': ', len(list(set(parties.get(p)))))
+	print('****************************************************************************')
+	print()
+	print('/////////////////////////////////////////////////////////////////////////////')
+	print()
+	# print(user_query.split())
+	########################################################################################
+	for sub_query in user_query.split():
+		if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
+			query = QueryParser("content", ix.schema).parse(sub_query)
+			results = searcher.search(query,limit=None)
+			for r in results:
+				parties.setdefault(r["party"],[]).append(r["manifesto_id"]) 
+				manifestos_results.append(r["manifesto_id"])
+			# print(list(set(manifestos_results)))
+			# print("Number of results:", len(list(set(manifestos_results))))
+			print()
+			print('Number of manifestos per party for the keyword: "', sub_query, '"')
+			print('----------------------------------------------------------------------------')
+			for p in parties.keys():
+				print(p, ': ', len(list(set(parties.get(p)))))
+			print('****************************************************************************')
 
 
 
