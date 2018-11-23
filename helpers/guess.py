@@ -1,6 +1,11 @@
 import numpy as np
 import sklearn
 import glob
+import sys
+
+print (sys.argv[1])
+with open('test1.txt', 'w') as the_file:
+    the_file.write(sys.argv[1])
 
 category=[]
 
