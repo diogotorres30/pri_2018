@@ -34,18 +34,25 @@ for row in spamreader:
 	
 	# writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
 # writer.commit()
-test_text = "la la la la di da toot toot toot"
-fdist1 = FreqDist(test_text)
-print(fdist1.most_common(2))
+# doc = nlp(party_manifestos.get("We Ourselves"))
+# # print(doc.ents)
+# for t in doc.ents:
+# 	text_in_list_form.append(t.text)
+# print(FreqDist(text_in_list_form).most_common(5))
+# fdist1 = FreqDist(party_manifestos["We Ourselves"].split())
+# print(fdist1.most_common(5))
 
 print('****************************************************************************')
 print('****************************************************************************')
 print('****************************************************************************')
-# for p in party_manifestos.keys():
-# 	print(p)
+for p in party_manifestos.keys():
+	print(p)
 # 	# print(party_manifestos.get(p))
-# 	doc = nlp(party_manifestos.get(p))
-
+	doc = nlp(party_manifestos.get(p))
+	for t in doc.ents:
+		text_in_list_form.append(t.text)
+	print(FreqDist(text_in_list_form).most_common(5))
+	text_in_list_form.clear()
 # 	# for entity in doc.ents:
 # 	# 	print(entity.text, entity.label_)
 print('****************************************************************************')
