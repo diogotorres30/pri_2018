@@ -13,7 +13,10 @@ from nltk.probability import FreqDist
 import spacy
 nlp = spacy.load('en_core_web_sm')
 nlp.max_length = 10000000
-
+import io
+f1 = io.open('helpers/training_tasks/WeOurselves/WeOurselves.txt', 'r+', encoding="utf8")
+ladida = f1.read()
+print(ladida.split())
 # schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
 # ix = create_in("indexdir", schema)
 # writer = ix.writer()
@@ -32,6 +35,7 @@ for row in spamreader:
 	else:
 		party_manifestos[row[2]] = party_manifestos.get(row[2]) + " " + row[0]
 	
+
 	# writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
 # writer.commit()
 # doc = nlp(party_manifestos.get("We Ourselves"))

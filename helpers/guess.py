@@ -56,7 +56,7 @@ docs_test = file.data
 import shutil
 import io
 
-f1 = io.open('test1.txt', 'r+', encoding="latin-1")
+f1 = io.open('test1.txt', 'r+', encoding="utf8")
 # f2 = io.open('teste2.txt', 'r+', encoding="latin-1")
 # f3 = io.open('teste3.txt', 'r+', encoding="latin-1")
 # f4 = io.open('teste4.txt', 'r+', encoding="latin-1")
