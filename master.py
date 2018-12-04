@@ -13,6 +13,10 @@ from nltk.probability import FreqDist
 import spacy
 import io
 import glob
+import time
+
+t0 = time.time()
+
 nlp = spacy.load('en_core_web_sm') #Loading english language for Named entity recognition with spaCy
 nlp.max_length = 10000000 #Increasing maximum file size to be processed
 
@@ -30,17 +34,17 @@ for filepath in glob.iglob('helpers/training_tasks/*.txt'):
 name_counter = 0
 
 #Populating index, from original csv file, to be used by Whoosh Search Engine
-schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
-ix = create_in("indexdir", schema)
-writer = ix.writer()
+# schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
+# ix = create_in("indexdir", schema)
+# writer = ix.writer()
 
-csv.field_size_limit(1000000)
-csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
-spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
+# csv.field_size_limit(1000000)
+# csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
+# spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
 
-for row in spamreader:
-	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
-writer.commit()
+# for row in spamreader:
+# 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
+# writer.commit()
 
 print('****************************************************************************')
 print('****************************************************************************')
@@ -48,17 +52,17 @@ print('*************************************************************************
 #Findind each party's entities and declraring which are the most commonly used by each one and in total.
 #We chose spaCy for its ease of use
 
-# for p in party_manifestos.keys():
-# 	print("The most mentioned entities by the " + p + " are:")
-# 	doc = nlp(" ".join(party_manifestos.get(p).split()))
-# 	for t in doc.ents:
-# 		party_manifesto_entities.append(t.text)
-# 		all_parties_manifestos_entities.append(t.text)
-# 	print(FreqDist(party_manifesto_entities).most_common(5))
-# 	print()
-# 	party_manifesto_entities.clear()
-# print("The most mentioned entities by all are:")
-# print(FreqDist(all_parties_manifestos_entities).most_common(5))
+for p in party_manifestos.keys():
+	print("The most mentioned entities by the " + p + " are:")
+	doc = nlp(" ".join(party_manifestos.get(p).split()))
+	for t in doc.ents:
+		party_manifesto_entities.append(t.text)
+		all_parties_manifestos_entities.append(t.text)
+	print(FreqDist(party_manifesto_entities).most_common(5))
+	print()
+	party_manifesto_entities.clear()
+print("The most mentioned entities by all are:")
+print(FreqDist(all_parties_manifestos_entities).most_common(5))
 print('****************************************************************************')
 print('****************************************************************************')
 print('****************************************************************************')
@@ -82,30 +86,27 @@ with ix.searcher() as searcher:
 	for r in results:
 		parties.setdefault(r["party"],[]).append(r["manifesto_id"]) 
 		manifestos_results.append(r["manifesto_id"])
-	print(list(set(manifestos_results)))
-	print("Total of number of manifestos:", len(list(set(manifestos_results))))
-	print('****************************************************************************')
+print(list(set(manifestos_results)))
+print("Total of number of manifestos:", len(list(set(manifestos_results))))
+print('****************************************************************************')
+print()
+print('Number of manifestos per party in results')
+print('----------------------------------------------------------------------------')
+for p in parties.keys():
+	print(p, ': ', len(list(set(parties.get(p)))))
+print('****************************************************************************')
+print()
+print('/////////////////////////////////////////////////////////////////////////////')
+print()
+########################################################################################
+for sub_query in user_query.split():
+	# if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
 	print()
-	print('Number of manifestos per party in results')
+	print('Number of manifestos per party for the keyword: "', sub_query, '"')
 	print('----------------------------------------------------------------------------')
-	for p in parties.keys():
-		print(p, ': ', len(list(set(parties.get(p)))))
+	for p in party_manifestos.keys():			
+		print(p, ': ', " ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()))			
 	print('****************************************************************************')
-	print()
-	print('/////////////////////////////////////////////////////////////////////////////')
-	print()
-	########################################################################################
-	for sub_query in user_query.split():
-		# if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
-		print()
-		print('Number of manifestos per party for the keyword: "', sub_query, '"')
-		print('----------------------------------------------------------------------------')
-		for p in party_manifestos.keys():
-			
-			
-			print(p, ': ', " ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()))
-			
-		print('****************************************************************************')
 		
 
 for p in party_manifestos.keys():
@@ -126,4 +127,7 @@ for p in party_manifestos.keys():
 	name_counter = name_counter + 1
 name_counter = 0
 
+t1 = time.time()
+
+print(t1-t0)
 #////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
