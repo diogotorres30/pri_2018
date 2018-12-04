@@ -7,7 +7,7 @@ for f in files:
     os.remove(f)
 
 csv.field_size_limit(1000000)
-csvfile = open('../en_docs_clean.csv', 'r')
+csvfile = open('../en_docs_clean.csv', 'r',encoding="utf-8")
 spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
 for row in spamreader:
 	file_to_open = 'training_tasks/' + row[2].replace(" ", "") + '/' + row[2].replace(" ", "") + '.txt'

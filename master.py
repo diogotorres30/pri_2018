@@ -14,60 +14,55 @@ import spacy
 nlp = spacy.load('en_core_web_sm')
 nlp.max_length = 10000000
 import io
-f1 = io.open('helpers/training_tasks/WeOurselves/WeOurselves.txt', 'r+', encoding="utf8")
-ladida = f1.read()
-print(ladida.split())
+import glob
+import re
+party_names = ["Conservative Party", "Democratic Unionist Party", "Green Party of England and Wales", "Labour Party", "Liberal Democrats", "Scottish National Party", "Social Democratic and Labour Party", "The Party of Wales", "Ulster Unionist Party", "United Kingdom Independence Party", "We Ourselves"]
+party_manifestos = dict()
+name_counter = 0
+
+for filepath in glob.iglob('helpers/training_tasks/*.txt'):	
+	party_manifestos[party_names[name_counter]] = io.open(filepath, 'r+').read()
+	name_counter = name_counter + 1 
+name_counter = 0
+for p in party_manifestos.keys():
+	print(p)
 # schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
 # ix = create_in("indexdir", schema)
 # writer = ix.writer()
 text_in_list_form = []
+big_boy = []
 firstline = True
 csv.field_size_limit(1000000)
 csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
 spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
-party_manifestos = dict()
-for row in spamreader:
-	if firstline:
-		firstline = False
-		continue
-	if row[2] not in party_manifestos:
-		party_manifestos[row[2]] = row[0]
-	else:
-		party_manifestos[row[2]] = party_manifestos.get(row[2]) + " " + row[0]
-	
-
-	# writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
+# 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
 # writer.commit()
-# doc = nlp(party_manifestos.get("We Ourselves"))
-# # print(doc.ents)
-# for t in doc.ents:
-# 	text_in_list_form.append(t.text)
-# print(FreqDist(text_in_list_form).most_common(5))
-# fdist1 = FreqDist(party_manifestos["We Ourselves"].split())
-# print(fdist1.most_common(5))
 
 print('****************************************************************************')
 print('****************************************************************************')
 print('****************************************************************************')
 for p in party_manifestos.keys():
-	print(p)
-# 	# print(party_manifestos.get(p))
-	doc = nlp(party_manifestos.get(p))
+	print("The most mentioned entities by the " + p + " are:")
+	doc = nlp(" ".join(party_manifestos.get(p).split()))
 	for t in doc.ents:
 		text_in_list_form.append(t.text)
+		big_boy.append(t.text)
 	print(FreqDist(text_in_list_form).most_common(5))
+	print()
 	text_in_list_form.clear()
-# 	# for entity in doc.ents:
-# 	# 	print(entity.text, entity.label_)
+print("The most mentioned entities by all are:")
+print(FreqDist(big_boy).most_common(5))
 print('****************************************************************************')
 print('****************************************************************************')
 print('****************************************************************************')
+
+
 
 #////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
 user_query = sys.argv[1]
 ix = open_dir("indexdir")
 parties = dict()
-parties2 = dict()
+mentioned_by_others = [0,0,0,0,0,0,0,0,0,0,0,0]
 manifestos_results = []
 print()
 print()
@@ -91,22 +86,21 @@ with ix.searcher() as searcher:
 	print()
 	print('/////////////////////////////////////////////////////////////////////////////')
 	print()
-	# print(user_query.split())
 	########################################################################################
 	for sub_query in user_query.split():
 		# if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
-		# query = QueryParser("content", ix.schema).parse(sub_query)
-		# results = searcher.search(query,limit=None)
-		# for r in results:
-		# 	if parties2.get(r["party"]) is None:
-		# 		parties2[r["party"]] = 0 + r["content"].lower().count(sub_query.lower())
-		# 	else:
-		# 		parties2[r["party"]] = parties2.get(r["party"]) + r["content"].lower().count(sub_query.lower())
 		print()
 		print('Number of manifestos per party for the keyword: "', sub_query, '"')
 		print('----------------------------------------------------------------------------')
 		for p in party_manifestos.keys():
-			print(p, ': ', party_manifestos.get(p).lower().count(sub_query.lower()))
+			for ppp in party_manifestos.keys():
+				if ppp != p:
+					mentioned_by_others[name_counter] = mentioned_by_others[name_counter] + " ".join(party_manifestos.get(ppp).split()).lower().count(p.lower())
+			
+			print(p, ': ', " ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()))
+			name_counter = name_counter +1
 		print('****************************************************************************')
-		parties2.clear()
+		name_counter = 0
+		
+	print(mentioned_by_others)
 #////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
