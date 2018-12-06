@@ -13,12 +13,11 @@ from nltk.probability import FreqDist
 import spacy
 import io
 import glob
-import time
 
-t0 = time.time()
-
-nlp = spacy.load('en_core_web_sm') #Loading english language for Named entity recognition with spaCy
-nlp.max_length = 10000000 #Increasing maximum file size to be processed
+#Loading english language for Named entity recognition with spaCy
+nlp = spacy.load('en_core_web_sm') 
+#Increasing maximum file size to be processed
+nlp.max_length = 10000000 
 
 #party_names and party_manifestos were created for easier and faster manipulation of the provided data
 party_names = ["Conservative Party", "Democratic Unionist Party", "Green Party of England and Wales", "Labour Party", "Liberal Democrats", "Scottish National Party", "Social Democratic and Labour Party", "The Party of Wales", "Ulster Unionist Party", "United Kingdom Independence Party", "We Ourselves"]
@@ -34,6 +33,7 @@ for filepath in glob.iglob('helpers/training_tasks/*.txt'):
 name_counter = 0
 
 #Populating index, from original csv file, to be used by Whoosh Search Engine
+
 # schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
 # ix = create_in("indexdir", schema)
 # writer = ix.writer()
@@ -46,32 +46,28 @@ name_counter = 0
 # 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
 # writer.commit()
 
-print('****************************************************************************')
-print('****************************************************************************')
-print('****************************************************************************')
-#Findind each party's entities and declraring which are the most commonly used by each one and in total.
-#We chose spaCy for its ease of use
-
 for p in party_manifestos.keys():
+	#Discover all named entities mentioned in the manifestos. We chose spaCy for its ease of use
 	print("The most mentioned entities by the " + p + " are:")
 	doc = nlp(" ".join(party_manifestos.get(p).split()))
 	for t in doc.ents:
 		party_manifesto_entities.append(t.text)
 		all_parties_manifestos_entities.append(t.text)
+	#What are the most mentioned entities for each party?
 	print(FreqDist(party_manifesto_entities).most_common(5))
 	print()
 	party_manifesto_entities.clear()
+#What are the most mentioned entities globally?
 print("The most mentioned entities by all are:")
 print(FreqDist(all_parties_manifestos_entities).most_common(5))
-print('****************************************************************************')
-print('****************************************************************************')
-print('****************************************************************************')
-
 
 
 #////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
-user_query = sys.argv[1]
+#Getting user query
+user_query = sys.argv[1] 
+#Openning previously populated and stored index folder for Whoosh Search Engine
 ix = open_dir("indexdir")
+
 parties = dict()
 mentioned_by_others = [0,0,0,0,0,0,0,0,0,0,0]
 mentions_others = [0,0,0,0,0,0,0,0,0,0,0]
@@ -82,9 +78,11 @@ print('Results for query: "', user_query,'"')
 print('----------------------------------------------------------------------------')
 with ix.searcher() as searcher:
 	query = QueryParser("content", ix.schema).parse(user_query)
-	results = searcher.search(query,limit=None)
+	results = searcher.search(query,limit=None) #Searching for given query in our manisfestos
 	for r in results:
-		parties.setdefault(r["party"],[]).append(r["manifesto_id"]) 
+		#For each party, how many manifestos are in the results returned
+		parties.setdefault(r["party"],[]).append(r["manifesto_id"])
+		#Return all the manifestos containing query
 		manifestos_results.append(r["manifesto_id"])
 print(list(set(manifestos_results)))
 print("Total of number of manifestos:", len(list(set(manifestos_results))))
@@ -94,21 +92,20 @@ print('Number of manifestos per party in results')
 print('----------------------------------------------------------------------------')
 for p in parties.keys():
 	print(p, ': ', len(list(set(parties.get(p)))))
-print('****************************************************************************')
-print()
-print('/////////////////////////////////////////////////////////////////////////////')
-print()
-########################################################################################
+
+#////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
+
+#How many times each party mentions each keyword
 for sub_query in user_query.split():
+	#Commented line was previously used to ignore stop words to reduce the algorithm
 	# if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
 	print()
 	print('Number of manifestos per party for the keyword: "', sub_query, '"')
 	print('----------------------------------------------------------------------------')
 	for p in party_manifestos.keys():			
 		print(p, ': ', " ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()))			
-	print('****************************************************************************')
 		
-
+#Which party is mentioned more times by the other parties?
 for p in party_manifestos.keys():
 	for ppp in party_manifestos.keys():
 		if ppp != p:
@@ -117,7 +114,8 @@ for p in party_manifestos.keys():
 	print()
 	name_counter = name_counter + 1
 name_counter = 0
-print("iuyghisdughiudghiuhgiusfdhguiodsfhgiudsnjxczbhdsbgiasdgbiadgbiuaghiadsbghsagbishabfuhdsabfudsbusabfuybzubgbguydgbuyabguyadbg")
+
+#How many times does any given party mention other parties?
 for p in party_manifestos.keys():
 	for ppp in party_manifestos.keys():
 		if ppp != p:
@@ -127,7 +125,3 @@ for p in party_manifestos.keys():
 	name_counter = name_counter + 1
 name_counter = 0
 
-t1 = time.time()
-
-print(t1-t0)
-#////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
