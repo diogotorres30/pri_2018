@@ -82,6 +82,7 @@ with ix.searcher() as searcher:
 		#Return all the manifestos containing query
 		manifestos_results.append(r["manifesto_id"])
 print("Total of number of manifestos:", len(list(set(manifestos_results))))
+print("Total of number of documents(lines):", len(manifestos_results))
 print()
 for i,item in enumerate(list(set(manifestos_results))):
     if (i+1)%5 == 0:
@@ -110,7 +111,7 @@ print()
 print('How many times does each party mention each keyword?')
 print('----------------------------------------------------------------------------')
 for sub_query in user_query.split():
-	#Commented line was previously used to ignore stop words to reduce the algorithm
+	#This commented line was previously used to ignore stop words to reduce the algorithm
 	# if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
 	print('"' + sub_query + '"')
 	for p in party_manifestos.keys():
