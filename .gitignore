@@ -19,7 +19,6 @@ lib64/
 parts/
 sdist/
 var/
-training_tasks/
 wheels/
 *.egg-info/
 .installed.cfg
