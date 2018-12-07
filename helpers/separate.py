@@ -16,7 +16,7 @@ for row in spamreader:
     		os.makedirs('training_tasks/' + row[2].replace(" ", ""))
 
 	file = open(file_to_open, "a")  # a for append instead of w for write
-	file.write(row[0] + '\n') 
-	file.close() 
+	file.write(row[0] + '\n')
+	file.close()
 
 # os.remove("training_tasks/party")

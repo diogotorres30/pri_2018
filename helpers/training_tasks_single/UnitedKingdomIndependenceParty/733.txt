@@ -1,0 +1,1 @@
+Ostensibly a road safety measure, this system tracks vehicles using GPS and reports back to a central database.

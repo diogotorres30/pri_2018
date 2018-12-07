@@ -1,0 +1,1 @@
+Implementation of recommendations from our planned ‘Stern Report’ on resource efficiency, which the Natural Capital Committee will conduct.

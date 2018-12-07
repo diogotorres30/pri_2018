@@ -1,0 +1,1 @@
+- allow successful NHS hospitals to take over failing ones.

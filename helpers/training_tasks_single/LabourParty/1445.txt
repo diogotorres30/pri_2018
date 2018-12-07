@@ -1,0 +1,1 @@
+Troops no longer patrol in most of the province.

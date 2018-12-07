@@ -1,0 +1,1 @@
+This policy would protect ordinary bank accounts, and allow banks to fail safely

@@ -1,0 +1,1 @@
+smart rent control that caps annual rent increases linked to the Consumer Price Index,

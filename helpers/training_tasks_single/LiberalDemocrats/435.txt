@@ -1,0 +1,1 @@
+We will link local training to local jobs.

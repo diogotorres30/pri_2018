@@ -1,0 +1,1 @@
+Improve control of arms exports by: Implementing a policy of ‘presumption of denial’ for arms exports to countries listed as countries of concern in the Foreign Office’s annual human rights report.

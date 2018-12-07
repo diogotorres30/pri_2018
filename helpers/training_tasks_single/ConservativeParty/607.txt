@@ -1,0 +1,1 @@
+And we will implement the requirement for all landlords to check the immigration status of their tenants.

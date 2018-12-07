@@ -1,0 +1,1 @@
+A new Rent to Own model where monthly payments steadily accrue the tenant a percentage stake in the property, owning it outright after 30 years.
