@@ -8,7 +8,7 @@ Firstly install the diferent depedencies:
 `nltk`
 `spacy`
 
-A) Run `python master.py "<argument>"` - The argument is the query to be searched. Don't forget the `""`
+A) Run `python master.py "<argument>"` - The argument is the query to be searched. (Don't forget the `""`)
 
 B) To see the classifier results run `python classify.py`.
 
