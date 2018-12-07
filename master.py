@@ -46,20 +46,32 @@ name_counter = 0
 # 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
 # writer.commit()
 
-for p in party_manifestos.keys():
-	#Discover all named entities mentioned in the manifestos. We chose spaCy for its ease of use
-	print("The most mentioned entities by the " + p + " are:")
-	doc = nlp(" ".join(party_manifestos.get(p).split()))
-	for t in doc.ents:
-		party_manifesto_entities.append(t.text)
-		all_parties_manifestos_entities.append(t.text)
-	#What are the most mentioned entities for each party?
-	print(FreqDist(party_manifesto_entities).most_common(5))
-	print()
-	party_manifesto_entities.clear()
-#What are the most mentioned entities globally?
-print("The most mentioned entities by all are:")
-print(FreqDist(all_parties_manifestos_entities).most_common(5))
+
+
+
+
+# print()
+# print("What are the most mentioned entities for each party?")
+# print('----------------------------------------------------------------------------')
+# for p in party_manifestos.keys():
+# 	#Discover all named entities mentioned in the manifestos. We chose spaCy for its ease of use
+# 	print( p + ":")
+# 	doc = nlp(" ".join(party_manifestos.get(p).split()))
+# 	for t in doc.ents:
+# 		party_manifesto_entities.append(t.text)
+# 		all_parties_manifestos_entities.append(t.text)
+# 	#What are the most mentioned entities for each party?
+# 	for r in FreqDist(party_manifesto_entities).most_common(5):
+# 		print(r[1],"-",r[0])
+# 	print()
+# 	party_manifesto_entities.clear()
+# #What are the most mentioned entities globally?
+# print()
+# print("What are the most mentioned entities globally?")
+# print('----------------------------------------------------------------------------')
+# for r in FreqDist(all_parties_manifestos_entities).most_common(5):
+# 		print(r[1],"-",r[0])
+
 
 
 #////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
@@ -84,14 +96,21 @@ with ix.searcher() as searcher:
 		parties.setdefault(r["party"],[]).append(r["manifesto_id"])
 		#Return all the manifestos containing query
 		manifestos_results.append(r["manifesto_id"])
-print(list(set(manifestos_results)))
+# print(list(set(manifestos_results)))
 print("Total of number of manifestos:", len(list(set(manifestos_results))))
-print('****************************************************************************')
+print()
+for i,item in enumerate(list(set(manifestos_results))):
+    if (i+1)%5 == 0:
+        print(item)
+    else:
+        print(item,end=' ')
+
+print()
 print()
 print('Number of manifestos per party in results')
 print('----------------------------------------------------------------------------')
 for p in parties.keys():
-	print(p, ': ', len(list(set(parties.get(p)))))
+	print(len(list(set(parties.get(p)))), ':', p)
 
 #////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
 
@@ -103,25 +122,29 @@ for sub_query in user_query.split():
 	print('Number of manifestos per party for the keyword: "', sub_query, '"')
 	print('----------------------------------------------------------------------------')
 	for p in party_manifestos.keys():			
-		print(p, ': ', " ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()))			
+		print(" ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()), ':', p)			
 		
 #Which party is mentioned more times by the other parties?
+print()
+print("Which party is mentioned more times by the other parties?")
+print('----------------------------------------------------------------------------')
 for p in party_manifestos.keys():
 	for ppp in party_manifestos.keys():
 		if ppp != p:
 			mentioned_by_others[name_counter] = mentioned_by_others[name_counter] + " ".join(party_manifestos.get(ppp).split()).lower().count(p.lower())
-	print("The " + p + " is mentioned by other parties", mentioned_by_others[name_counter], "times.")
-	print()
+	print(mentioned_by_others[name_counter], ':', p)
 	name_counter = name_counter + 1
 name_counter = 0
 
 #How many times does any given party mention other parties?
+print()
+print("How many times does any given party mention other parties?")
+print('----------------------------------------------------------------------------')
 for p in party_manifestos.keys():
 	for ppp in party_manifestos.keys():
 		if ppp != p:
 			mentions_others[name_counter] = mentions_others[name_counter] + " ".join(party_manifestos.get(p).split()).lower().count(ppp.lower())
-	print("The " + p + " mentions other parties", mentions_others[name_counter], "times.")
-	print()
+	print(mentions_others[name_counter], ':', p)
 	name_counter = name_counter + 1
 name_counter = 0
 
