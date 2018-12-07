@@ -25,6 +25,7 @@ party_manifestos = dict()
 name_counter = 0
 party_manifesto_entities = []
 all_parties_manifestos_entities = []
+print_aux = dict()
 
 #Loading files containing each party's complete manifestos organized line by line
 for filepath in glob.iglob('helpers/training_tasks/*.txt'):	
@@ -34,17 +35,17 @@ name_counter = 0
 
 #Populating index, from original csv file, to be used by Whoosh Search Engine
 
-# schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
-# ix = create_in("indexdir", schema)
-# writer = ix.writer()
+schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
+ix = create_in("indexdir", schema)
+writer = ix.writer()
 
-# csv.field_size_limit(1000000)
-# csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
-# spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
+csv.field_size_limit(1000000)
+csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
+spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
 
-# for row in spamreader:
-# 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
-# writer.commit()
+for row in spamreader:
+	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
+writer.commit()
 
 
 
@@ -86,7 +87,7 @@ mentions_others = [0,0,0,0,0,0,0,0,0,0,0]
 manifestos_results = []
 print()
 print()
-print('Results for query: "', user_query,'"')
+print('Return all the manifestos containing such keywords :', '"' + user_query + '"')
 print('----------------------------------------------------------------------------')
 with ix.searcher() as searcher:
 	query = QueryParser("content", ix.schema).parse(user_query)
@@ -107,23 +108,33 @@ for i,item in enumerate(list(set(manifestos_results))):
 
 print()
 print()
-print('Number of manifestos per party in results')
+print('For each party, how many manifestos are in the results returned?')
 print('----------------------------------------------------------------------------')
 for p in parties.keys():
-	print(len(list(set(parties.get(p)))), ':', p)
+	print_aux[p] = len(list(set(parties.get(p))))
+for w in sorted(print_aux, key=print_aux.get, reverse=True):
+	print(print_aux[w],':',w)
+print_aux.clear()	  
+print()
 
 #////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
 
 #How many times each party mentions each keyword
+print()
+print('How many times does each party mention each keyword?')
+print('----------------------------------------------------------------------------')
 for sub_query in user_query.split():
 	#Commented line was previously used to ignore stop words to reduce the algorithm
 	# if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
+	print('"' + sub_query + '"')
+	for p in party_manifestos.keys():
+		if(" ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()) != 0):
+			print_aux[p] = " ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower())
+	for w in sorted(print_aux, key=print_aux.get, reverse=True):
+  		print(print_aux[w],':',w)
+	print_aux.clear()	  
 	print()
-	print('Number of manifestos per party for the keyword: "', sub_query, '"')
-	print('----------------------------------------------------------------------------')
-	for p in party_manifestos.keys():			
-		print(" ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()), ':', p)			
-		
+
 #Which party is mentioned more times by the other parties?
 print()
 print("Which party is mentioned more times by the other parties?")
@@ -147,4 +158,3 @@ for p in party_manifestos.keys():
 	print(mentions_others[name_counter], ':', p)
 	name_counter = name_counter + 1
 name_counter = 0
-
