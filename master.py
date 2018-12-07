@@ -15,9 +15,9 @@ import io
 import glob
 
 #Loading english language for Named entity recognition with spaCy
-nlp = spacy.load('en_core_web_sm') 
+nlp = spacy.load('en_core_web_sm')
 #Increasing maximum file size to be processed
-nlp.max_length = 10000000 
+nlp.max_length = 10000000
 
 #party_names and party_manifestos were created for easier and faster manipulation of the provided data
 party_names = ["Conservative Party", "Democratic Unionist Party", "Green Party of England and Wales", "Labour Party", "Liberal Democrats", "Scottish National Party", "Social Democratic and Labour Party", "The Party of Wales", "Ulster Unionist Party", "United Kingdom Independence Party", "We Ourselves"]
@@ -35,17 +35,17 @@ name_counter = 0
 
 #Populating index, from original csv file, to be used by Whoosh Search Engine
 
-# schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
-# ix = create_in("indexdir", schema)
-# writer = ix.writer()
+schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
+ix = create_in("indexdir", schema)
+writer = ix.writer()
 
-# csv.field_size_limit(1000000)
-# csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
-# spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
+csv.field_size_limit(1000000)
+csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
+spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
 
-# for row in spamreader:
-# 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
-# writer.commit()
+for row in spamreader:
+	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
+writer.commit()
 
 
 
@@ -57,70 +57,71 @@ name_counter = 0
 
 #////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
 #Getting user query
-user_query = sys.argv[1] 
+
 #Openning previously populated and stored index folder for Whoosh Search Engine
-ix = open_dir("indexdir")
+if (len(sys.argv) > 1):
+	ix = open_dir("indexdir")
+	user_query = sys.argv[1]
+	parties = dict()
+	mentioned_by_others = dict()
+	mentions_others = dict()
+	for i in party_names:
+		mentioned_by_others[i] = 0
+		mentions_others[i] = 0
 
-parties = dict()
-mentioned_by_others = dict()
-mentions_others = dict()
-for i in party_names:
-	mentioned_by_others[i] = 0
-	mentions_others[i] = 0
-
-manifestos_results = []
-print()
-print()
-print('Return all the manifestos containing these keywords :', '"' + user_query + '"')
-print('----------------------------------------------------------------------------')
-with ix.searcher() as searcher:
-	query = QueryParser("content", ix.schema).parse(user_query)
-	results = searcher.search(query,limit=None) #Searching for given query in our manisfestos
-	for r in results:
-		#For each party, how many manifestos are in the results returned
-		parties.setdefault(r["party"],[]).append(r["manifesto_id"])
-		#Return all the manifestos containing query
-		manifestos_results.append(r["manifesto_id"])
-print("Total of number of manifestos:", len(list(set(manifestos_results))))
-print("Total of number of documents(lines):", len(manifestos_results))
-print()
-for i,item in enumerate(list(set(manifestos_results))):
-    if (i+1)%5 == 0:
-        print(item)
-    else:
-        print(item,end=' ')
-print()
+	manifestos_results = []
+	print()
+	print()
+	print('Return all the manifestos containing these keywords :', '"' + user_query + '"')
+	print('----------------------------------------------------------------------------')
+	with ix.searcher() as searcher:
+		query = QueryParser("content", ix.schema).parse(user_query)
+		results = searcher.search(query,limit=None) #Searching for given query in our manisfestos
+		for r in results:
+			#For each party, how many manifestos are in the results returned
+			parties.setdefault(r["party"],[]).append(r["manifesto_id"])
+			#Return all the manifestos containing query
+			manifestos_results.append(r["manifesto_id"])
+	print("Total of number of manifestos:", len(list(set(manifestos_results))))
+	print("Total of number of documents(lines):", len(manifestos_results))
+	print()
+	for i,item in enumerate(list(set(manifestos_results))):
+		if (i+1)%5 == 0:
+			print(item)
+		else:
+			print(item,end=' ')
+	print()
 
 #////////////////////////////////////////  Point 1 /////////////////////////////////////////////
 
 #For each party, how many manifestos are in the results returned
-print()
-print('For each party, how many manifestos are in the results returned?')
-print('----------------------------------------------------------------------------')
-for p in parties.keys():
-	print_aux[p] = len(list(set(parties.get(p))))
-for w in sorted(print_aux, key=print_aux.get, reverse=True):
-	print(print_aux[w],':',w)
-print_aux.clear()	  
-print()
-
-#////////////////////////////////////////  Point 2 /////////////////////////////////////////////
-
-#How many times each party mentions each keyword
-print()
-print('How many times does each party mention each keyword?')
-print('----------------------------------------------------------------------------')
-for sub_query in user_query.split():
-	#This commented line was previously used to ignore stop words to reduce the algorithm
-	# if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
-	print('"' + sub_query + '"')
-	for p in party_manifestos.keys():
-		if(" ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()) != 0):
-			print_aux[p] = " ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower())
+	print()
+	print('For each party, how many manifestos are in the results returned?')
+	print('----------------------------------------------------------------------------')
+	for p in parties.keys():
+		print_aux[p] = len(list(set(parties.get(p))))
 	for w in sorted(print_aux, key=print_aux.get, reverse=True):
-  		print(print_aux[w],':',w)
+		print(print_aux[w],':',w)
 	print_aux.clear()	  
 	print()
+
+	#////////////////////////////////////////  Point 2 /////////////////////////////////////////////
+
+	#How many times each party mentions each keyword
+	print()
+	print('How many times does each party mention each keyword?')
+	print('----------------------------------------------------------------------------')
+	for sub_query in user_query.split():
+		#This commented line was previously used to ignore stop words to reduce the algorithm
+		# if not whoosh.lang.stopwords_for_language('english').__contains__(sub_query):
+		print('"' + sub_query + '"')
+		for p in party_manifestos.keys():
+			if(" ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower()) != 0):
+				print_aux[p] = " ".join(party_manifestos.get(p).split()).lower().count(sub_query.lower())
+		for w in sorted(print_aux, key=print_aux.get, reverse=True):
+			print(print_aux[w],':',w)
+		print_aux.clear()	  
+		print()
 
 #////////////////////////////////////////  ALINEA c) /////////////////////////////////////////////
 
