@@ -20,9 +20,9 @@ from sklearn.linear_model import Perceptron
 
 # Retrives the categories used
 category=[]
-files = glob.glob('training_tasks/*')
+files = glob.glob('helpers/training_tasks/*')
 for f in files:
-    category.append(f.replace('training_tasks/','').replace('.txt', ''))
+    category.append(f.replace('helpers/training_tasks/','').replace('.txt', ''))
 
 
 # Not the best function name, but that's what it does
@@ -39,8 +39,8 @@ def spit_results(text_clf,docs_test,file_test,file,classifier):
 
 
 # Load files to be treated
-file = load_files('training_tasks_single',encoding='latin-1',decode_error='ignore',shuffle=True)
-file_test = load_files('test_tasks_single',encoding='latin-1',decode_error='ignore',shuffle=True)
+file = load_files('helpers/training_tasks_single',encoding='latin-1',decode_error='ignore',shuffle=True)
+file_test = load_files('helpers/test_tasks_single',encoding='latin-1',decode_error='ignore',shuffle=True)
 docs_test = file_test.data
 
 #
@@ -69,7 +69,7 @@ spit_results(text_clf,docs_test,file_test,file,'SGDClassifier')
 #
 text_clf = Pipeline([
      ('tfidf', TfidfVectorizer(lowercase=False, sublinear_tf=True, ngram_range=(1,2))),
-     ('clf', LinearSVC(fit_intercept=False, loss='squared_hinge', max_iter=100)),
+     ('clf', LinearSVC(fit_intercept=False, max_iter=100)),
 ])
 
 spit_results(text_clf,docs_test,file_test,file,'LinearSVC')

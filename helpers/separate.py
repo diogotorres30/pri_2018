@@ -1,3 +1,8 @@
+# SEPARATE.PY
+# Picks the main csv file and distributes it in folders with a text file
+# filed with the text from the parties
+#
+
 import csv
 import os
 import glob

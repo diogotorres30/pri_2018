@@ -1,3 +1,7 @@
+# SINGLEFILES.PY
+# Gets training tasks or test tasks and puts each sentence in a single txt file
+#
+
 import csv
 import os
 import glob
