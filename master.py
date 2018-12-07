@@ -35,43 +35,23 @@ name_counter = 0
 
 #Populating index, from original csv file, to be used by Whoosh Search Engine
 
-schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
-ix = create_in("indexdir", schema)
-writer = ix.writer()
+# schema = Schema(manifesto_id = TEXT(stored=True), content=TEXT(stored=True, analyzer=analysis.StandardAnalyzer(stoplist=None)), party = TEXT(stored=True), date = TEXT(stored=True), title = TEXT(stored=True))
+# ix = create_in("indexdir", schema)
+# writer = ix.writer()
 
-csv.field_size_limit(1000000)
-csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
-spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
+# csv.field_size_limit(1000000)
+# csvfile = open('en_docs_clean.csv', 'r',encoding="utf8")
+# spamreader = csv.reader(csvfile, quotechar='"', delimiter=',',quoting=csv.QUOTE_ALL, skipinitialspace=True)
 
-for row in spamreader:
-	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
-writer.commit()
-
-
+# for row in spamreader:
+# 	writer.add_document(manifesto_id=row[1],content=row[0],party=row[2],date=row[3],title=row[4])
+# writer.commit()
 
 
 
-# print()
-# print("What are the most mentioned entities for each party?")
-# print('----------------------------------------------------------------------------')
-# for p in party_manifestos.keys():
-# 	#Discover all named entities mentioned in the manifestos. We chose spaCy for its ease of use
-# 	print( p + ":")
-# 	doc = nlp(" ".join(party_manifestos.get(p).split()))
-# 	for t in doc.ents:
-# 		party_manifesto_entities.append(t.text)
-# 		all_parties_manifestos_entities.append(t.text)
-# 	#What are the most mentioned entities for each party?
-# 	for r in FreqDist(party_manifesto_entities).most_common(5):
-# 		print(r[1],"-",r[0])
-# 	print()
-# 	party_manifesto_entities.clear()
-# #What are the most mentioned entities globally?
-# print()
-# print("What are the most mentioned entities globally?")
-# print('----------------------------------------------------------------------------')
-# for r in FreqDist(all_parties_manifestos_entities).most_common(5):
-# 		print(r[1],"-",r[0])
+
+
+
 
 
 
@@ -82,12 +62,16 @@ user_query = sys.argv[1]
 ix = open_dir("indexdir")
 
 parties = dict()
-mentioned_by_others = [0,0,0,0,0,0,0,0,0,0,0]
-mentions_others = [0,0,0,0,0,0,0,0,0,0,0]
+mentioned_by_others = dict()
+mentions_others = dict()
+for i in party_names:
+	mentioned_by_others[i] = 0
+	mentions_others[i] = 0
+
 manifestos_results = []
 print()
 print()
-print('Return all the manifestos containing such keywords :', '"' + user_query + '"')
+print('Return all the manifestos containing these keywords :', '"' + user_query + '"')
 print('----------------------------------------------------------------------------')
 with ix.searcher() as searcher:
 	query = QueryParser("content", ix.schema).parse(user_query)
@@ -97,7 +81,6 @@ with ix.searcher() as searcher:
 		parties.setdefault(r["party"],[]).append(r["manifesto_id"])
 		#Return all the manifestos containing query
 		manifestos_results.append(r["manifesto_id"])
-# print(list(set(manifestos_results)))
 print("Total of number of manifestos:", len(list(set(manifestos_results))))
 print()
 for i,item in enumerate(list(set(manifestos_results))):
@@ -105,8 +88,11 @@ for i,item in enumerate(list(set(manifestos_results))):
         print(item)
     else:
         print(item,end=' ')
-
 print()
+
+#////////////////////////////////////////  Point 1 /////////////////////////////////////////////
+
+#For each party, how many manifestos are in the results returned
 print()
 print('For each party, how many manifestos are in the results returned?')
 print('----------------------------------------------------------------------------')
@@ -117,7 +103,7 @@ for w in sorted(print_aux, key=print_aux.get, reverse=True):
 print_aux.clear()	  
 print()
 
-#////////////////////////////////////////  ALINEA a) /////////////////////////////////////////////
+#////////////////////////////////////////  Point 2 /////////////////////////////////////////////
 
 #How many times each party mentions each keyword
 print()
@@ -135,6 +121,41 @@ for sub_query in user_query.split():
 	print_aux.clear()	  
 	print()
 
+#////////////////////////////////////////  ALINEA c) /////////////////////////////////////////////
+
+#////////////////////////////////////////  Point 1 /////////////////////////////////////////////
+
+#What are the most mentioned entities for each party?
+excluded_entities = ['ORDINAL','CARDINAL','PERCENT']
+print()
+print("What are the most mentioned entities for each party?")
+print('----------------------------------------------------------------------------')
+for p in party_manifestos.keys():
+	#Discover all named entities mentioned in the manifestos. We chose spaCy for its ease of use
+	print( p + ":")
+	doc = nlp(" ".join(party_manifestos.get(p).split()))
+	for t in doc.ents:
+		#Execluding non relevenat entities
+		if(t.label_ not in excluded_entities):
+			party_manifesto_entities.append(t.text)
+			all_parties_manifestos_entities.append(t.text)
+	#What are the most mentioned entities for each party?
+	for r in FreqDist(party_manifesto_entities).most_common(5):
+		print(r[1],"-",r[0])
+	print()
+	party_manifesto_entities.clear()
+
+#////////////////////////////////////////  Point 2 /////////////////////////////////////////////
+
+#What are the most mentioned entities globally?
+print()
+print("What are the most mentioned entities globally?")
+print('----------------------------------------------------------------------------')
+for r in FreqDist(all_parties_manifestos_entities).most_common(5):
+		print(r[1],"-",r[0])
+
+#////////////////////////////////////////  Point 3 /////////////////////////////////////////////
+
 #Which party is mentioned more times by the other parties?
 print()
 print("Which party is mentioned more times by the other parties?")
@@ -142,10 +163,11 @@ print('-------------------------------------------------------------------------
 for p in party_manifestos.keys():
 	for ppp in party_manifestos.keys():
 		if ppp != p:
-			mentioned_by_others[name_counter] = mentioned_by_others[name_counter] + " ".join(party_manifestos.get(ppp).split()).lower().count(p.lower())
-	print(mentioned_by_others[name_counter], ':', p)
-	name_counter = name_counter + 1
-name_counter = 0
+			mentioned_by_others[p] = mentioned_by_others[p] + " ".join(party_manifestos.get(ppp).split()).lower().count(p.lower())
+for w in sorted(mentioned_by_others, key=mentioned_by_others.get, reverse=True):
+  	print(mentioned_by_others[w],':',w)
+
+#////////////////////////////////////////  Point 4 /////////////////////////////////////////////
 
 #How many times does any given party mention other parties?
 print()
@@ -154,7 +176,6 @@ print('-------------------------------------------------------------------------
 for p in party_manifestos.keys():
 	for ppp in party_manifestos.keys():
 		if ppp != p:
-			mentions_others[name_counter] = mentions_others[name_counter] + " ".join(party_manifestos.get(p).split()).lower().count(ppp.lower())
-	print(mentions_others[name_counter], ':', p)
-	name_counter = name_counter + 1
-name_counter = 0
+			mentions_others[p] = mentions_others[p] + " ".join(party_manifestos.get(p).split()).lower().count(ppp.lower())
+for w in sorted(mentions_others, key=mentions_others.get, reverse=True):
+  	print(mentions_others[w],':',w)
